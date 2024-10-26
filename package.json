@@ -1,0 +1,22 @@
+{
+  "name": "@hexlet/code",
+  "version": "0.0.1",
+  "description": "RSS Aggregator",
+  "main": "",
+  "scripts": {
+    "dev": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evoly/frontend-project-11.git"
+  },
+  "author": "Svetlana Semenko",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+
+  },
+  "devDependencies": {
+
+  }
+}
