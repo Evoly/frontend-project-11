@@ -1,0 +1,8 @@
+@import "bootstrap";
+
+a {
+  transition: all ease-in-out .3s;
+  &:hover {
+    opacity: .7;
+  }
+}

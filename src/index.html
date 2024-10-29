@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/src/style.scss">
+  <link rel="icon" type="images/png" sizes="16x16" href="images/favicon.ico">
+  <title>RSS Aggregator</title>
+</head>
+
+<body class="d-flex flex-column min-vh-100 justify-content-between">
+  <main class="container-fluid">
+    <section class="bg-dark">
+      <div class="row">
+        <div class="col-md-12 col-lg-10 col-xl-8 mx-auto p-5">
+          <h1 class="display-3 text-white">RSS агрегатор</h1>
+          <p class="lead text-white">Начните читать RSS сегодня! Это легко, это красиво.</p>
+          <form class="row g-3" action="">
+            <div class="col">
+              <div class="form-floating col-auto ">
+                <input id="url-input" autofocus="" required="" name="url" aria-label="url" class="form-control"
+                  placeholder="ссылка RSS" autocomplete="off">
+                <label for="url-input">Ссылка RSS</label>
+              </div>
+            </div>
+            <div class="col-sm-12 col-xl-4 col-xxl-3">
+              <button type="submit" class="h-100 w-100 btn btn-lg btn-primary px-sm-5"
+                aria-label="add">Добавить</button>
+            </div>
+          </form>
+          <p class="mt-2 mb-0 text-mute">Пример: https://lorem-rss.hexlet.app/feed</p>
+          <p class="feedback m-0 position-absolute small text-danger"></p>
+        </div>
+      </div>
+    </section>
+    <section class=" p-5">
+      <div class="row">
+        <div class="col-md-10 col-lg-8 order-1 mx-auto posts"></div>
+        <div class="col-md-10 col-lg-4 mx-auto order-0 order-lg-1 feeds"></div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer border-top py-3 mt-5 bg-light container-fluid">
+    <div class="row">
+    <div class="col-md-12 col-lg-10 col-xl-8  mx-auto d-flex justify-content-between">
+      <a href="https://ru.hexlet.io/professions/frontend/projects/11" target="_blank">
+        <img src="images/hexlet.svg" alt="hexlet icon">
+      </a>
+      <div>2024</div>
+            <a href="https://github.com/evoly/frontend-project-11.git" target="_blank">
+              <img src="images/GitHub_logo.svg" alt="gihub icon">
+            </a>
+
+
+    </div>
+    </div>
+
+  </footer>
+</body>
+
+</html>
