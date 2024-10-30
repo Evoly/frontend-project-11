@@ -30,6 +30,8 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.3",
-    "css-loader": "^7.1.2"
+    "css-loader": "^7.1.2",
+    "on-change": "^5.0.1",
+    "yup": "^1.4.0"
   }
 }
