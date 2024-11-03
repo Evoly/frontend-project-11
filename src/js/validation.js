@@ -1,10 +1,5 @@
 import * as yup from 'yup';
 
-
-// f для перевода
-
-
-
 const schema = yup.object({
   url: yup.string()
     .url('Ссылка должна быть валидным URL')
