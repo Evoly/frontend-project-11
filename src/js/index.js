@@ -3,6 +3,7 @@ import * as yup from 'yup';
 import uniqueId from 'lodash.uniqueid'
 import i18next from 'i18next';
 import Modal from 'bootstrap/js/dist/modal.js'
+import axios from 'axios';
 
 import addProxy from './proxy.js';
 import parse from './parese.js';
@@ -117,15 +118,16 @@ const app = () => {
       case 'ValidationError':
         watchedState.form = { ...watchedState.form, valid: false, error: error.errors[0].key };
         break;
-      case 'TypeError':
-        watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'fail', error: error.name };
+      case 'AxiosError':
+        console.log('val errors:', error)
+        watchedState.loadingProcess = {...watchedState.loadingProcess, status: 'fail', error: error.code };
         break;
       case 'parseError':
         console.log('val errors:', error)
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'fail', error: error.name };
         break;    
       default:
-        break;
+        watchedState.error = error;
     }
   };
   const renderError = (input, feedbackElement, val) => {
@@ -140,7 +142,7 @@ const app = () => {
           i18Key = `loading.${val.status}`;
           break;      
         default:
-          break;
+          i18Key = `unknownErr`;
       }
     } else {
       i18Key = `validation.${val.error}`;
@@ -180,10 +182,11 @@ const app = () => {
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'sending', error: null };
         return currentUrl;
       })
-      .then((url) => fetch(addProxy(url)))
+        .then((url) => axios.get(addProxy(url), { timeout: 15000 }))
       .then((response) => {
+        console.log(response)
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'success', error: null };
-        return response.json()})
+        return response.data})
       .then((data) => {        
         const parsedData = parse(data);
         const feed = {
