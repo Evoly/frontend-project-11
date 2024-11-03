@@ -19,8 +19,8 @@
           <form class="row g-3" action="">
             <div class="col">
               <div class="form-floating col-auto ">
-                <input id="url-input" autofocus="" required="" name="url" aria-label="url" class="form-control"
-                  placeholder="ссылка RSS" autocomplete="off" value="https://api.github.com/repos/javascript-tutorial/en.javascript.info/commits">
+                <input id="url-input" autofocus="" name="url" aria-label="url" class="form-control"
+                  placeholder="ссылка RSS" autocomplete="off" value="https://lorem-rss.hexlet.app/feed">
                 <label for="url-input">Ссылка RSS</label>
               </div>
             </div>
@@ -29,7 +29,7 @@
                 aria-label="add">Добавить</button>
             </div>
           </form>
-          <p class="mt-2 mb-0 text-mute">Пример: https://lorem-rss.hexlet.app/feed</p>
+          <p class="mt-2 mb-0 text-white fw-lighter">Пример: https://lorem-rss.hexlet.app/feed</p>
           <p class="feedback m-0 position-absolute small text-danger"></p>
         </div>
       </div>
@@ -54,5 +54,19 @@
       </div>
     </div>
   </footer>
+  <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"></h5><button type="button" class="btn-close close" data-bs-dismiss="modal"
+            aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-break"></div>
+        <div class="modal-footer"><a class="btn btn-primary full-article" href="#" role="button" target="_blank"
+            rel="noopener noreferrer">Читать полностью </a><button type="button" class="btn btn-secondary"
+            data-bs-dismiss="modal">Закрыть</button></div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
