@@ -10,6 +10,30 @@ import parse from './parese.js';
 import resources from './locales/index.js';
 import { renderFeeds, renderVisitedlink, renderModal, renderPosts } from './render.js';
 
+const getData = (data, watchedState) => {
+  const parsedData = parse(data);
+  console.log('parsedData', parsedData)
+  let feed = watchedState.feeds.find(item => item.title === parsedData.title);
+
+  if (!feed) {    
+    feed = {
+      title: parsedData.title,
+      description: parsedData.description,
+      id: `${uniqueId()}`,
+    };
+    watchedState.feeds = [...watchedState.feeds, ...[feed]];
+  };
+  const filteredPosts = watchedState.posts.filter(item => item.feedid === feed.id);
+
+  const posts = parsedData.items.map((item) => ({ ...item, id: `${uniqueId()}`, feedid: feed.id }));
+  const newPosts = posts.filter((post) => !filteredPosts.some((el) => el.title === post.title ));
+  console.log('ResultArrayObjOne', newPosts)
+  
+  watchedState.posts = [...newPosts, ...watchedState.posts];
+
+  console.log('get data state', watchedState)
+}
+
 const app = () => {
   const state = {
     feeds: [],
@@ -186,29 +210,42 @@ const app = () => {
       .then((response) => {
         console.log(response)
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'success', error: null };
-        return response.data})
+        return response.data
+      })
       .then((data) => {        
-        const parsedData = parse(data);
-        const feed = {
-          title: parsedData.title,
-          description: parsedData.description,
-        };
-        watchedState.feeds = [...watchedState.feeds, ...[feed]];
-        const posts = parsedData.items.map((item) => ({...item, id: `${uniqueId()}`}));
-        watchedState.posts = [...watchedState.posts, ...posts];
+        getData(data, watchedState);
       })
       .then(() => watchedState.urls = [...watchedState.urls, currentUrl])
       .catch((e) => {
         console.log('Errors!',e, e.errors,'name:', e.name)
         handleErrors(e)
-      }).then(() => console.log('state:', state));
+      })
+      .then(() => updateFeeds(watchedState.urls))
+      .then(() => console.log('event state:', state));    
   });
+
+  const updateFeeds = (urls) => {
+    const promises = urls.map((url) => axios.get(addProxy(url), { timeout: 15000 }));
+    Promise.all(promises)
+        .then((response) => {
+          console.log(response)
+          watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'success', error: null };
+          const data = response.map((item) => item.data)
+          return data
+        })
+      .then((data) => {
+        return data.map((item) => getData(item, watchedState));
+      })
+      .catch((e) => handleErrors(e));
+      
+    return setTimeout(() => updateFeeds(urls), 5000);
+  }
 
   elements.postsContainer.addEventListener('click', ({ target }) => {
     const id = target.dataset.id
     if (!id) return;
-
     watchedState.ui.visitedLinkIds = watchedState.ui.visitedLinkIds.add(id);
+    
     if (target instanceof HTMLButtonElement) {
       const post = state.posts.find((item) => item.id === id);
       const modal = new Modal(elements.modal);
