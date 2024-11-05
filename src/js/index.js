@@ -79,25 +79,28 @@ const app = () => {
     modal: document.querySelector('#modal'),
   };
 
-  const setDisable = (elements, sending = true) => {
+  const handleFormEls = (elements, sending = true, loading='fail') => {
     console.log('sending:', sending);
     elements.submitBtn.disabled = sending;
     elements.input.readonly = sending;
+    if (loading === 'success') {
+      elements.input.value = '';
+    }
   };
 
   const loadingProcess = (val, elements) => {
     console.log('loadingProcess val:', val);
     switch (val.status) {
       case 'sending':
-        setDisable(elements, true);
+        handleFormEls(elements, true);
         break;
       case 'success':
         console.log('success!');
-        setDisable(elements, false);
+        handleFormEls(elements, false, val.status);
         renderError(elements.input, elements.feedbackElement, val);
         break;
       case 'fail':
-        setDisable(elements, false);
+        handleFormEls(elements, false);
         renderError(elements.input, elements.feedbackElement, val);
         break;
       default:
