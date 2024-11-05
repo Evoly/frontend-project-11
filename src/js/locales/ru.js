@@ -8,17 +8,16 @@ export default {
 
     },
     loading: {
-      success: 'RSS успешно загружен',      
+      success: 'RSS успешно загружен',
       parseError: 'Ресурс не содержит валидный RSS',
       ERR_NETWORK: 'Ошибка сети',
-      ECONNABORTED: 'Ошибка сети'
+      ECONNABORTED: 'Ошибка сети',
     },
     content: {
       btnShow: 'Просмотр',
       postHeader: 'Посты',
       feedHeader: 'Фиды',
     },
-    unknownErr: 'что-то пошло не так'
+    unknownErr: 'что-то пошло не так',
   },
 };
-

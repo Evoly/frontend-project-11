@@ -1,10 +1,11 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default {
   mode: process.env.NODE_ENV || 'development',
@@ -19,24 +20,24 @@ export default {
   plugins: [new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
       template: './src/index.html',
-    })
+    }),
   ],
   module: {
     rules: [
       {
         test: /\.(scss|css)$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
       {
         test: /\.html$/i,
-        use: 'html-loader'
+        use: 'html-loader',
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
         generator: {
-          filename: 'images/[name]-[hash][ext]'
-        }
+          filename: 'images/[name]-[hash][ext]',
+        },
       },
 
     ],
