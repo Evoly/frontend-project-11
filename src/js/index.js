@@ -12,9 +12,9 @@ import {
   renderFeeds, renderVisitedlink, renderModal, renderPosts,
 } from './render.js';
 
-const getData = (data, watchedState) => {
+const getData = (data, state) => {
   const parsedData = parse(data);
-  let feed = watchedState.feeds.find((item) => item.title === parsedData.title);
+  let feed = state.feeds.find((item) => item.title === parsedData.title);
 
   if (!feed) {
     feed = {
@@ -22,14 +22,14 @@ const getData = (data, watchedState) => {
       description: parsedData.description,
       id: `${uniqueId()}`,
     };
-    watchedState.feeds = [...watchedState.feeds, ...[feed]];
+    state.feeds = [...state.feeds, ...[feed]];
   }
-  const filteredPosts = watchedState.posts.filter((item) => item.feedid === feed.id);
+  const filteredPosts = state.posts.filter((item) => item.feedid === feed.id);
 
   const posts = parsedData.items.map((item) => ({ ...item, id: `${uniqueId()}`, feedid: feed.id }));
   const newPosts = posts.filter((post) => !filteredPosts.some((el) => el.title === post.title));
 
-  watchedState.posts = [...newPosts, ...watchedState.posts];
+  state.posts = [...newPosts, ...state.posts];
 };
 
 const app = () => {
@@ -79,29 +79,55 @@ const app = () => {
     modal: document.querySelector('#modal'),
   };
 
-  const handleFormEls = (elements, sending = true, loading='fail') => {
-    console.log('sending:', sending);
+  const handleFormEls = (sending = true, loading = '') => {
     elements.submitBtn.disabled = sending;
     elements.input.readonly = sending;
-    if (loading === 'success') {
+    if (loading === 'filling') {
       elements.input.value = '';
     }
   };
+  const renderError = (input, el, val) => {
+    let i18Key;
+    if (Object.hasOwn(val, 'status')) {
+      switch (val.status) {
+        case 'fail':
+          i18Key = `loading.${val.error}`;
+          break;
+        case 'success':
+          i18Key = `loading.${val.status}`;
+          break;
+        default:
+          i18Key = 'unknownErr';
+      }
+    } else {
+      i18Key = `validation.${val.error}`;
+    }
+    if (!val.error) {
+      input.classList.remove('is-invalid');
+      el.classList.remove('text-danger');
+      el.classList.add('text-success');
+    } else {
+      input.classList.add('is-invalid');
+      el.classList.add('text-danger');
+      el.classList.remove('text-success');
+    }
+    el.textContent = i18n.t(i18Key);
+  };
 
-  const loadingProcess = (val, elements) => {
-    console.log('loadingProcess val:', val);
+  const loadingProcess = (val) => {
     switch (val.status) {
       case 'sending':
-        handleFormEls(elements, true);
+        handleFormEls(true);
         break;
       case 'success':
-        console.log('success!');
-        handleFormEls(elements, false, val.status);
         renderError(elements.input, elements.feedbackElement, val);
         break;
       case 'fail':
-        handleFormEls(elements, false);
+        handleFormEls(false);
         renderError(elements.input, elements.feedbackElement, val);
+        break;
+      case 'filling':
+        handleFormEls(false, val.status);
         break;
       default:
         break;
@@ -109,8 +135,6 @@ const app = () => {
   };
 
   const watchedState = onChange(state, (path, val) => {
-    console.log('path:', path);
-    console.log('val state:', val);
     switch (path) {
       case 'form':
         if (!state.form.valid) {
@@ -140,50 +164,32 @@ const app = () => {
         watchedState.form = { ...watchedState.form, valid: false, error: error.errors[0].key };
         break;
       case 'AxiosError':
-        console.log('val errors:', error);
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'fail', error: error.code };
         break;
       case 'parseError':
-        console.log('val errors:', error);
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'fail', error: error.name };
         break;
       default:
         watchedState.error = error;
     }
   };
-  const renderError = (input, feedbackElement, val) => {
-    console.log('renderError:', val);
-    let i18Key;
-    if (Object.hasOwn(val, 'status')) {
-      switch (val.status) {
-        case 'fail':
-          i18Key = `loading.${val.error}`;
-          break;
-        case 'success':
-          i18Key = `loading.${val.status}`;
-          break;
-        default:
-          i18Key = 'unknownErr';
-      }
-    } else {
-      i18Key = `validation.${val.error}`;
-    }
-    if (!val.error) {
-      input.classList.remove('is-invalid');
-      feedbackElement.classList.remove('text-danger');
-      feedbackElement.classList.add('text-success');
-    } else {
-      input.classList.add('is-invalid');
-      feedbackElement.classList.add('text-danger');
-      feedbackElement.classList.remove('text-success');
-    }
-    feedbackElement.textContent = i18n.t(i18Key);
+
+  const updateFeeds = (urls) => {
+    const promises = urls.map((url) => axios.get(addProxy(url), { timeout: 15000 }));
+    Promise.all(promises)
+      .then((response) => {
+        const data = response.map((item) => item.data);
+        return data;
+      })
+      .then((data) => data.map((item) => getData(item, watchedState)));
+
+    return setTimeout(() => updateFeeds(urls), 5000);
   };
 
-  elements.form.addEventListener('submit', (e) => {
-    e.preventDefault();
+  elements.form.addEventListener('submit', (event) => {
+    event.preventDefault();
 
-    const data = new FormData(e.target);
+    const data = new FormData(event.target);
     const currentUrl = data.get('url');
     const schema = yup.object({
       url: yup.string()
@@ -199,34 +205,17 @@ const app = () => {
       })
       .then((url) => axios.get(addProxy(url), { timeout: 15000 }))
       .then((response) => {
-        console.log(response);
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'success', error: null };
         return response.data;
       })
-      .then((data) => {
-        getData(data, watchedState);
-      })
-      .then(() => watchedState.urls = [...watchedState.urls, currentUrl])
-      .catch((e) => {
-        console.log('Errors!', e, e.errors, 'name:', e.name);
-        handleErrors(e);
+      .then((xml) => {
+        getData(xml, watchedState);
+        watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'filling', error: null };
+        watchedState.urls = [...watchedState.urls, currentUrl];
       })
       .then(() => updateFeeds(watchedState.urls))
-      .then(() => console.log('event state:', state));
-  });
-
-  const updateFeeds = (urls) => {
-    const promises = urls.map((url) => axios.get(addProxy(url), { timeout: 15000 }));
-    Promise.all(promises)
-      .then((response) => {
-        const data = response.map((item) => item.data);
-        return data;
-      })
-      .then((data) => data.map((item) => getData(item, watchedState)))
       .catch((e) => handleErrors(e));
-
-    // return setTimeout(() => updateFeeds(urls), 5000);
-  };
+  });
 
   elements.postsContainer.addEventListener('click', ({ target }) => {
     const { id } = target.dataset;
@@ -243,4 +232,3 @@ const app = () => {
 };
 
 app();
-
