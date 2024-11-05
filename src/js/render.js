@@ -1,36 +1,34 @@
-
 const createEl = (el, props = {}) => Object.assign(document.createElement(el), props);
 
-const createLi = (data, i18n, visitedLinkIds) => {
+const createLi = (data, i18n, ids) => {
   const li = createEl('li', { className: 'd-flex justify-content-between mb-3 gap-2' });
+  const classes = [...ids].some((el) => data.id === el) ? ['fw-normal', 'link-secondary'] : ['fw-bold'];
   const a = createEl('a', {
-    href: `${data.link}`, className: 'fw-bold', target: '_blank', rel: 'noopener noreferrer'
+    href: `${data.link}`, className: classes.join(' '), target: '_blank', rel: 'noopener noreferrer',
   });
   a.dataset.id = data.id;
-  
   a.textContent = data.title;
   const btn = createEl('button', { type: 'button', className: 'btn btn-outline-primary btn-sm' });
   btn.textContent = i18n.t('content.btnShow');
-  btn.dataset.bsToggle = 'modal';
   btn.dataset.bsTarget = '#modal';
-  btn.dataset.id = data.id
+  btn.dataset.id = data.id;
   li.append(a);
   li.append(btn);
 
   return li;
-}
+};
 export const renderVisitedlink = (id) => {
   const link = document.querySelector(`[data-id="${id}"]`);
   link.classList.remove('fw-bold');
   link.classList.add('fw-normal', 'link-secondary');
 };
 
-export const renderFeeds = (data, i18n, container) => {
+export const renderFeeds = (state, i18n, container) => {
   const feedHeader = createEl('h2', { className: 'text-center' });
   feedHeader.textContent = i18n.t('content.feedHeader');
 
   const ul = createEl('ul', { className: 'list-unstyled' });
-  const lines = data.map((item) => {
+  const lines = state.feeds.map((item) => {
     const li = createEl('li');
     const header = createEl('h3');
     header.textContent = item.title;
@@ -45,13 +43,12 @@ export const renderFeeds = (data, i18n, container) => {
   return container;
 };
 
-export const renderPosts = (data, i18n, container, visitedLinkIds) => {
-  console.log('data', data)
+export const renderPosts = (state, i18n, container) => {
   const postHeader = createEl('h2', { className: 'text-center' });
   postHeader.textContent = i18n.t('content.postHeader');
 
   const ul = createEl('ul', { className: 'list-unstyled' });
-  const lines = data.map((item) => createLi(item, i18n, visitedLinkIds));
+  const lines = state.posts.map((item) => createLi(item, i18n, state.ui.visitedLinkIds));
   ul.append(...lines);
   container.replaceChildren(postHeader, ul);
 };
@@ -63,4 +60,4 @@ export const renderModal = (el, post) => {
   modalBody.textContent = post.description;
   const link = el.querySelector('.full-article');
   link.href = post.link;
-}
+};
