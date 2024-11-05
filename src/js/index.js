@@ -22,6 +22,7 @@ const getData = (data, state) => {
       description: parsedData.description,
       id: `${uniqueId()}`,
     };
+    // eslint-disable-next-line no-param-reassign
     state.feeds = [...state.feeds, ...[feed]];
   }
   const filteredPosts = state.posts.filter((item) => item.feedid === feed.id);
@@ -29,6 +30,7 @@ const getData = (data, state) => {
   const posts = parsedData.items.map((item) => ({ ...item, id: `${uniqueId()}`, feedid: feed.id }));
   const newPosts = posts.filter((post) => !filteredPosts.some((el) => el.title === post.title));
 
+  // eslint-disable-next-line no-param-reassign
   state.posts = [...newPosts, ...state.posts];
 };
 
@@ -111,6 +113,7 @@ const app = () => {
       el.classList.add('text-danger');
       el.classList.remove('text-success');
     }
+    // eslint-disable-next-line no-param-reassign
     el.textContent = i18n.t(i18Key);
   };
 
