@@ -56,10 +56,5 @@ export default {
     watchFiles: {
       paths: ['src/**/*.*'],
     },
-    open: {
-      app: {
-        name: 'google-chrome',
-      },
-    },
   },
 };
