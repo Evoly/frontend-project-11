@@ -61,3 +61,32 @@ export const renderModal = (el, post) => {
   const link = el.querySelector('.full-article');
   link.href = post.link;
 };
+
+export const renderError = (input, el, val, i18n) => {
+  let i18Key;
+  if (Object.hasOwn(val, 'status')) {
+    switch (val.status) {
+      case 'fail':
+        i18Key = `loading.${val.error}`;
+        break;
+      case 'success':
+        i18Key = `loading.${val.status}`;
+        break;
+      default:
+        i18Key = 'unknownErr';
+    }
+  } else {
+    i18Key = `validation.${val.error}`;
+  }
+  if (!val.error) {
+    input.classList.remove('is-invalid');
+    el.classList.remove('text-danger');
+    el.classList.add('text-success');
+  } else {
+    input.classList.add('is-invalid');
+    el.classList.add('text-danger');
+    el.classList.remove('text-success');
+  }
+  // eslint-disable-next-line no-param-reassign
+  el.textContent = i18n.t(i18Key);
+};
