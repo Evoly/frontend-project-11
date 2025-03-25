@@ -31,7 +31,7 @@ To set up the project locally, follow these steps:
       npm run dev
     ```
 
-## Live Demo:
+## Live Demo
 [RSS Aggregator](https://frontend-project-11-ten-flame.vercel.app/)
 
 
