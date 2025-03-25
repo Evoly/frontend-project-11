@@ -6,10 +6,10 @@ import Modal from 'bootstrap/js/dist/modal.js';
 import axios from 'axios';
 
 import addProxy from './proxy.js';
-import parse from './parese.js';
+import parse from './parse.js';
 import resources from './locales/index.js';
 import {
-  renderFeeds, renderVisitedlink, renderModal, renderPosts,
+  renderFeeds, renderVisitedlink, renderModal, renderPosts, renderError,
 } from './render.js';
 
 const getData = (data, state) => {
@@ -51,6 +51,7 @@ const app = () => {
     },
     ui: {
       visitedLinkIds: new Set(),
+      modalContent: null,
     },
   };
 
@@ -81,56 +82,36 @@ const app = () => {
     modal: document.querySelector('#modal'),
   };
 
-  const handleFormEls = (sending = true, loading = '') => {
+  const updateFormState = (sending = true, loading = '') => {
     elements.submitBtn.disabled = sending;
     elements.input.readonly = sending;
     if (loading === 'filling') {
       elements.input.value = '';
     }
   };
-  const renderError = (input, el, val) => {
-    let i18Key;
-    if (Object.hasOwn(val, 'status')) {
-      switch (val.status) {
-        case 'fail':
-          i18Key = `loading.${val.error}`;
-          break;
-        case 'success':
-          i18Key = `loading.${val.status}`;
-          break;
-        default:
-          i18Key = 'unknownErr';
-      }
-    } else {
-      i18Key = `validation.${val.error}`;
+
+  const showModal = (post) => {
+    if (post) {
+      const modal = new Modal(elements.modal);
+      renderModal(elements.modal, post);
+      modal.show();
     }
-    if (!val.error) {
-      input.classList.remove('is-invalid');
-      el.classList.remove('text-danger');
-      el.classList.add('text-success');
-    } else {
-      input.classList.add('is-invalid');
-      el.classList.add('text-danger');
-      el.classList.remove('text-success');
-    }
-    // eslint-disable-next-line no-param-reassign
-    el.textContent = i18n.t(i18Key);
   };
 
-  const loadingProcess = (val) => {
+  const processLoadingState = (val) => {
     switch (val.status) {
       case 'sending':
-        handleFormEls(true);
+        updateFormState(true);
         break;
       case 'success':
-        renderError(elements.input, elements.feedbackElement, val);
+        renderError(elements.input, elements.feedbackElement, val, i18n);
         break;
       case 'fail':
-        handleFormEls(false);
-        renderError(elements.input, elements.feedbackElement, val);
+        updateFormState(false);
+        renderError(elements.input, elements.feedbackElement, val, i18n);
         break;
       case 'filling':
-        handleFormEls(false, val.status);
+        updateFormState(false, val.status);
         break;
       default:
         break;
@@ -141,11 +122,11 @@ const app = () => {
     switch (path) {
       case 'form':
         if (!state.form.valid) {
-          renderError(elements.input, elements.feedbackElement, val);
+          renderError(elements.input, elements.feedbackElement, val, i18n);
         }
         break;
       case 'loadingProcess':
-        loadingProcess(val, elements, i18n);
+        processLoadingState(val, elements, i18n);
         break;
       case 'posts':
         renderPosts(watchedState, i18n, elements.postsContainer);
@@ -155,6 +136,9 @@ const app = () => {
         break;
       case 'ui.visitedLinkIds':
         renderVisitedlink([...val].at(-1));
+        break;
+      case 'ui.modalContent':
+        showModal(val);
         break;
       default:
         break;
@@ -204,32 +188,27 @@ const app = () => {
       .then(() => {
         watchedState.form = { ...watchedState.form, valid: true, error: null };
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'sending', error: null };
-        return currentUrl;
+        return axios.get(addProxy(currentUrl), { timeout: 15000 });
       })
-      .then((url) => axios.get(addProxy(url), { timeout: 15000 }))
       .then((response) => {
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'success', error: null };
-        return response.data;
-      })
-      .then((xml) => {
-        getData(xml, watchedState);
+        getData(response.data, watchedState);
         watchedState.loadingProcess = { ...watchedState.loadingProcess, status: 'filling', error: null };
         watchedState.urls = [...watchedState.urls, currentUrl];
+        updateFeeds(watchedState.urls);
       })
-      .then(() => updateFeeds(watchedState.urls))
       .catch((e) => handleErrors(e));
   });
 
   elements.postsContainer.addEventListener('click', ({ target }) => {
     const { id } = target.dataset;
     if (!id) return;
+    watchedState.ui.modalContent = null;
     watchedState.ui.visitedLinkIds = watchedState.ui.visitedLinkIds.add(id);
 
     if (target instanceof HTMLButtonElement) {
       const post = state.posts.find((item) => item.id === id);
-      const modal = new Modal(elements.modal);
-      renderModal(elements.modal, post);
-      modal.show();
+      watchedState.ui.modalContent = post;
     }
   });
 };
